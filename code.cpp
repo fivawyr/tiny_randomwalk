@@ -58,7 +58,9 @@ int main(int argc, const char *argv[])
     agents.reserve(num_agents);
     for (i32 i = 0; i < num_agents; i++) 
     {
-        agents.push_back((SDL_Rect) {50, 50, 5, 5});
+        i32 start_x = WIDTH / 2 - 5 / 2;
+        i32 start_y = HEIGHT / 2 - 5 / 2; 
+        agents.push_back((SDL_Rect) {start_x,start_y, 5, 5});
     }
     SDL_Delay(300);
 
@@ -75,19 +77,35 @@ int main(int argc, const char *argv[])
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) app_running = 0;
         }
 
-        SDL_FillRect(psurface, NULL, 0x00000);
-
         for (SDL_Rect &agent : agents) 
         {
             Velocity v = get_rand_velocity();
-            agent.x += v.vx;
-            agent.y+= v.vy;
+            agent.x += v.vx * 2; 
+            agent.y+= v.vy * 2;
             if (agent.x < 0) agent.x = 0; 
             if (agent.x > WIDTH - agent.w) agent.x = WIDTH - agent.w; 
             if (agent.y < 0) agent.y = 0; 
             if (agent.y > HEIGHT - agent.h) agent.y = HEIGHT - agent.h;
-            SDL_FillRect(psurface, &agent, 0xFFFFFFF);
+            SDL_FillRect(psurface, &agent, 0xFFFFFF);
         }
+        vector<uint32_t> colors;
+        colors.reserve(num_agents);
+        for (i32 i = 0; i < num_agents; i++) 
+        {
+            uint8_t r = rand() % 256;
+            uint8_t g = rand() & 256; 
+            uint8_t b = rand() & 256; 
+            colors.push_back(SDL_MapRGB(psurface->format, r, g, b));
+        }
+        for (size_t i = 0; i < agents.size(); i++) 
+        {
+            SDL_Rect &agent = agents[i];
+            Velocity v = get_rand_velocity();
+            agent.x += v.vy * 2; 
+            agent.y += v.vy * 2;
+            SDL_FillRect(psurface, &agent, colors[i]);
+        }
+        
         SDL_UpdateWindowSurface(pwindow);
         SDL_Delay(16);
     }
