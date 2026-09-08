@@ -1,121 +1,96 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
-#include <SDL.h>
-#include <time.h>
+#include <ctime>
+#include <cmath>
 #include <vector>
+#include <raylib.h>
 
 using namespace std;
 typedef int32_t i32; 
+typedef float f32;
 
-constexpr i32 WIDTH = 900;
-constexpr i32 HEIGHT = 600;
+constexpr f32 WIDTH = 900.0f;
+constexpr f32 HEIGHT = 600.0f;
 
-struct Velocity 
-{
-    i32 vx, vy; 
+struct Velocity {
+    f32 vx, vy; 
 };
 
-Velocity get_rand_velocity() 
-{
-    i32 opts = rand() % 4; 
-    switch (opts) 
-    {
-        case 0: return (Velocity) {0, -1};
-        case 1: return (Velocity) {0, 1};
-        case 2: return (Velocity) {-1, 0};
-        case 3: return (Velocity) {1, 0};
-    }
-    fprintf(stderr, "impossible value %d\n", opts);
-    exit(-1);
+struct TracePoint {
+    Rectangle rect;
+    Color color;
+};
+
+f32 get_levy_step(f32 gamma = 1.5f, f32 base_step = 2.0f, f32 max_step = 100.0f) {
+    f32 u = (static_cast<f32>(rand()) + 1.0f) / (RAND_MAX + 1.0f);
+    f32 step = base_step * powf(u, -1.0f / gamma);
+    if (step > max_step) step = max_step; 
+    return step;
 }
 
-int main(int argc, const char *argv[])
-{
+Velocity get_levy_velocity() {
+    f32 step = get_levy_step(1.5f, 2.0f, 80.0f);
+    i32 opts = rand() % 4; 
+    switch (opts) {
+        case 0: return Velocity{0.0f, -step};
+        case 1: return Velocity{0.0f, step};
+        case 2: return Velocity{-step, 0.0f};
+        case 3: return Velocity{step, 0.0f};
+    }
+    return Velocity{0.0f, 0.0f};
+}
+
+int main(int argc, const char *argv[]) {
+    vector<TracePoint> trace;
     i32 num_agents{0};
-    if (argc == 1)
-    {
-        num_agents = 5; 
-    } else if (argc == 2)
-    {
-        num_agents = atoi(argv[1]);
-    }
-    else
-    {
-        cout << "Usage: "  << num_agents << endl; 
-        return -1; 
-    }
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
-    {
-        cerr << "couldnt init SDL" << SDL_GetError() << "\n";
-        return -1;
-    }
+
+    if (argc == 1) num_agents = 5; 
+    else if (argc == 2) num_agents = atoi(argv[1]);
+    else return -1; 
     srand(time(NULL));
-    SDL_Window *pwindow = SDL_CreateWindow("Random Walk", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, 0);
-    SDL_Surface *psurface = SDL_GetWindowSurface(pwindow);
-    vector<SDL_Rect> agents; 
+
+    InitWindow(WIDTH, HEIGHT, "Levy Flight Random Walk");
+    SetTargetFPS(60); 
+
+    vector<Rectangle> agents; 
     agents.reserve(num_agents);
-    for (i32 i = 0; i < num_agents; i++) 
-    {
-        i32 start_x = WIDTH / 2 - 5 / 2;
-        i32 start_y = HEIGHT / 2 - 5 / 2; 
-        agents.push_back((SDL_Rect) {start_x,start_y, 5, 5});
+    for (i32 i = 0; i < num_agents; i++)  {
+        f32 start_x = static_cast<f32>(WIDTH / 2 - 5.0f / 2);
+        f32 start_y = static_cast<f32 >(HEIGHT / 2 - 5.0f / 2); 
+        agents.push_back(Rectangle{start_x, start_y, 5.0f, 5.0f});
     }
-    SDL_Delay(300);
-
-    i32 app_running =  1; 
-    while(app_running) 
-    {
-        SDL_Event event;
-        while(SDL_PollEvent(&event))
-        {
-            if(event.type == SDL_QUIT) 
-            {
-                app_running = 0; 
-            }
-            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) app_running = 0;
-        }
-
-        for (SDL_Rect &agent : agents) 
-        {
-            Velocity v = get_rand_velocity();
-            agent.x += v.vx * 2; 
-            agent.y+= v.vy * 2;
+    vector<Color> colors;
+    for (i32 i = 0; i < num_agents; i++) {
+        colors.push_back(Color{
+            static_cast<unsigned char>(rand() % 256),
+            static_cast<unsigned char>(rand() % 256),
+            static_cast<unsigned char>(rand() % 256),
+            255
+        });
+    }
+    while (!WindowShouldClose()) {
+        for (size_t i = 0; i < agents.size(); ++i) {
+            Rectangle &agent = agents[i];
+            Velocity v = get_levy_velocity();
+            agent.x += v.vx; 
+            agent.y += v.vy;
             if (agent.x < 0) agent.x = 0; 
-            if (agent.x > WIDTH - agent.w) agent.x = WIDTH - agent.w; 
+            if (agent.x > WIDTH - agent.width) agent.x = WIDTH - agent.width; 
             if (agent.y < 0) agent.y = 0; 
-            if (agent.y > HEIGHT - agent.h) agent.y = HEIGHT - agent.h;
-            SDL_FillRect(psurface, &agent, 0xFFFFFF);
+            if (agent.y > HEIGHT - agent.height) agent.y = HEIGHT - agent.height;
+            trace.push_back(TracePoint{agent, colors[i]});
         }
-        vector<uint32_t> colors;
-        colors.reserve(num_agents);
-        for (i32 i = 0; i < num_agents; i++) 
-        {
-            uint8_t r = rand() % 256;
-            uint8_t g = rand() & 256; 
-            uint8_t b = rand() & 256; 
-            colors.push_back(SDL_MapRGB(psurface->format, r, g, b));
+        BeginDrawing();
+        ClearBackground(BLACK); 
+        for (const TracePoint &t : trace) {
+            DrawRectangleRec(t.rect, t.color);
         }
-        for (size_t i = 0; i < agents.size(); i++) 
-        {
-            SDL_Rect &agent = agents[i];
-            Velocity v = get_rand_velocity();
-            agent.x += v.vy * 2; 
-            agent.y += v.vy * 2;
-            SDL_FillRect(psurface, &agent, colors[i]);
+        for (size_t i = 0; i < agents.size(); ++i) {
+            DrawRectangleRec(agents[i], colors[i]);
         }
-        
-        SDL_UpdateWindowSurface(pwindow);
-        SDL_Delay(16);
+        EndDrawing();
     }
-    SDL_DestroyWindow(pwindow);
-    SDL_Quit(); 
+    CloseWindow();
     return 0; 
 }
-
-
-
-
-
-
