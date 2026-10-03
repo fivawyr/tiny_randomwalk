@@ -1,18 +1,23 @@
-import prcessing.core.PApllet;
+import processing.core.PApplet;
 
 public class Main extends PApplet {
-    public void settings() {
-        size(500, 800);
-    }
+    Walker localWalker; 
+
     public void setup() {
-       background(255);
+        background(255);
+        localWalker = new Walker(this);
+    }
+
+    public void settings() {
+        size(700, 600);
     }
 
     public void draw() {
-
+        localWalker.step();
+        localWalker.show();
     }
 
     public static void main(String[] args) {
-        PApllet.main("Main");
+        PApplet.main("Main");
     }
 }
