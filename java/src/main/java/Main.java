@@ -9,11 +9,14 @@ public class Main extends PApplet {
     }
 
     public void settings() {
-        size(700, 600);
+            size(700, 600);
     }
 
     public void draw() {
-        localWalker.step();
+        for (int i = 0; i < 2; ++i) {
+            localWalker.step();
+        }
+
         localWalker.show();
     }
 
