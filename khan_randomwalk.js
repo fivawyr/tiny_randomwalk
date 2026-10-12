@@ -6,6 +6,7 @@ var Walker = function() {
 
 Walker.prototype.display = function() {
     stroke(0, 0, 0);
+    strokeWeight(3);
     fill(64, 0, 255);
     noStroke();
     ellipse(this.x, this.y, width, height);
@@ -13,7 +14,8 @@ Walker.prototype.display = function() {
 
 Walker.prototype.walk = function() {
     
-
+    this.x = map(noise(this.tx), 0, 1, 0, width);
+    this.y = map(noise(this.ty), 0, 1, 0, height);
      *var generator = new Random(1);
     var standardDeviation = 2;
     var mean = 0;
