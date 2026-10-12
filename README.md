@@ -20,6 +20,11 @@ cd # where ever you clone this repo
     -lraylib
 ./walk
 ```
+
+![](resources/Sceenshot3.png)
+
+> Screenshot from processing.js from khan academy (webbrowser version)
+
 ![](resources/Screenshot2.png)
 
 > Screenshot from the raylig **with** lévy implementation
