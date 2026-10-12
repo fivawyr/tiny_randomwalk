@@ -7,7 +7,7 @@ public class Walker {
     Walker(PApplet p) {
         this.p = p;
         x = p.width / 2; // in java we dont need to write this.x unless I would get x as an parameter (compare p!)
-        y = p.height / 2; 
+        y = p.height / 2;
     }
 
     void show() {
