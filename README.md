@@ -21,7 +21,7 @@ cd # where ever you clone this repo
 ./walk
 ```
 
-![](resources/Sceenshot3.png)
+![](resources/Screenshot3.png)
 
 > Screenshot from processing.js from khan academy (webbrowser version)
 
