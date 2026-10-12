@@ -12,7 +12,16 @@ Walker.prototype.display = function() {
 };
 
 Walker.prototype.walk = function() {
-    var step_size = 6; 
+    
+
+     *var generator = new Random(1);
+    var standardDeviation = 2;
+    var mean = 0;
+    ;
+        var xStepSize = standardDeviation * generator.nextGaussian() + mean;
+        var yStepSize = standardDeviation * generator.nextGaussian() + mean;
+      
+        var step_size = 6; 
     var choice = floor(random(4));
     if (choice === 0) {
         this.x += step_size;
